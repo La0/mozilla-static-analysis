@@ -4,22 +4,40 @@ import axios from 'axios'
 import router from './routes'
 Vue.use(Vuex)
 
+const PREFERENCES_KEY = 'mozilla-sa-dashboard'
 const TASKCLUSTER_INDEX = 'https://index.taskcluster.net/v1'
 const TASKCLUSTER_QUEUE = 'https://queue.taskcluster.net/v1'
 const TASKS_SLICE = 10
 
 export default new Vuex.Store({
   state: {
-    channel: 'testing',
+    channel: 'production',
     tasks: [],
     report: null,
     stats: null
   },
   mutations: {
+    load_preferences (state) {
+      // Load prefs from local storage
+      let rawPrefs = localStorage.getItem(PREFERENCES_KEY)
+      if (rawPrefs) {
+        let prefs = JSON.parse(rawPrefs)
+        if (prefs.channel) {
+          state.channel = prefs.channel
+        }
+      }
+    },
+    save_preferences (state) {
+      // Save channel to preferences
+      localStorage.setItem(PREFERENCES_KEY, JSON.stringify({
+        channel: state.channel
+      }))
+    },
     use_channel (state, channel) {
       state.channel = channel
       state.stats = null
       state.report = null
+      this.commit('save_preferences')
     },
     reset_tasks (state) {
       state.tasks = []
